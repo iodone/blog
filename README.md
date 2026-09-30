@@ -173,12 +173,13 @@ pnpm build && pnpm typecheck
    | `src/styles/globals.css` | `--nb-*` token 与字体栈 |
    | `src/styles/prose.css` | 末尾「Mixed typesetting」段 |
    | `src/components/blog/*` | 列表 / 条目 / 页头，Props 是本项目定义的 |
+   | `src/components/ui/toc/*` | 官方大纲组件，可见文案已中文化（`本页目录` 等） |
    | `src/pages/{tags,archive}*` | 本项目新增的派生页 |
 
    另外 `Header.astro` 与 `ui/*` 虽是官方组件，但调用方式被本项目改过（多传了 `sections`），
    所以用 `add --overwrite` 覆盖官方文件**之前先 `diff` 一遍**。
 
-   升级后若页面版式变了，**先查上面这七个地方**。
+   升级后若页面版式变了，**先查上面这八个地方**。
 
 ---
 
@@ -276,6 +277,7 @@ src/pages/blog/           # 时间线、单篇、分页、RSS、markdown alterna
 src/pages/tags/           # 标签索引 /tags + 单标签页 /tags/<tag>
 src/pages/archive.astro   # 归档页，按年 / 月分组
 src/components/blog/      # 时间线组件（nb-cl-* 类名）
+src/components/ui/toc/    # 右侧大纲栏（TOC / MobileTOC，文章页用，已中文化）
 src/lib/nav.ts            # 顶部导航（唯一真源）
 src/styles/globals.css    # 配色 + 字体 + 字号 token（--nb-*）
 src/styles/prose.css      # 正文排版 + 混排规则
@@ -299,7 +301,8 @@ scripts/import-post.mjs   # 从工作区文档导入（保留原文）
 | 配色（暖纸 / 暖炭 + 陶土色强调） | `globals.css` 的 `:root` 与 `[data-mode="dark"]` | 改 `--nb-*` token，别改组件 |
 | 字号阶梯 | `globals.css` 的 `--nb-h1-size` 等 | 同上 |
 | 顶部导航 | `src/lib/nav.ts` 的 `NAV` 数组 | 加一行即多一个 tab，active 态自动推导；全站（文章 / 标签 / 归档 / 首页 / 文档 / 404）共用这一套 |
-| 列表形态（混合） | `BlogFeed` 的 `leadFirst` prop | 传 `false` 即全部走摘要 |
+| 列表形态（全摘要卡片） | `BlogFeed` 的 `leadFirst` prop | 默认 `false`，每个列表都是摘要卡片；传 `true` 才恢复「最新一篇全文内联」的混合形态 |
+| 文章页右侧大纲 | `BlogLayout` 的 `headings` prop | 文章页传 `getTOC(headings)` 就出现右侧栏，不传即原来的单栏；移动端由 `MobileTOC` 下拉接手 |
 
 **字体**：拉丁部分自托管 Newsreader（`@fontsource-variable/newsreader`，含 optical size 与斜体）；
 中文**走系统宋体栈**（Songti SC / 思源宋体 / SimSun），不下载中文字体。
@@ -313,7 +316,7 @@ scripts/import-post.mjs   # 从工作区文档导入（保留原文）
 **标签页和归档页是派生的，不手工维护**：`/tags` 与 `/tags/<tag>` 的标签集合来自所有文章的
 frontmatter，归档页的年月分组来自 `date`。加一篇文章或改一个标签，这些页面自动跟上。
 
-## 六个已知的坑
+## 七个已知的坑
 
 ### 1. 增删文章后偶发构建失败 → 清内容缓存
 
@@ -364,29 +367,47 @@ Pagefind 只索引带 `data-pagefind-body` 的页面。Nimbus 默认只给 docs 
 blog 的列表页和文章页都没有——所以搜索一度什么都搜不到（只索引到 1 页 68 词）。
 
 现在 `src/pages/blog/[...slug].astro` 的 `<article>` 上加了 `data-pagefind-body`，文章详情页进索引；
-`/blog` **故意不加**，因为列表页内联了每篇全文，索引它就会和详情页重复。
+`/blog` **故意不加**——列表只有摘要卡片，索引它只会往搜索结果里塞一堆重复的短条目，
+正文的权威副本在详情页。
 构建时看 `Indexed N pages` 校验，应为「docs 页数 + 文章数」。
 
-### 5. 混合列表下，最新一篇的体量就是首页的体量
+### 5. 一旦打开 `leadFirst`，最新一篇的体量就是首页的体量
 
-`/blog` 的首页把**最新一篇全文内联**，其余走摘要（见「设计决策」）。
-所以首页大小由最新那篇决定，不由篇数决定：当前最新是 119KB 的 HawDB 长文，
-首页静态产物约 236KB。前两篇换成摘要只省下约 53KB。
+`/blog` 现在**全部走摘要卡片**，首页只受篇数影响（三篇约 30KB）。
+但 `BlogFeed` 的 `leadFirst` 开关还留着——传 `true` 就回到混合形态：最新一篇全文内联，
+首页大小立刻由那一篇决定，119KB 的 HawDB 会让首页涨回约 236KB。
 
-想让首页恒定轻量，两个选择：
-- 在 `BlogFeed` 上传 `leadFirst={false}`——全部走摘要，首页只受篇数影响；
-- 或给首篇加一个视觉截断（`max-height` + 渐变 + 「阅读全文」），正文仍在 DOM 里，对 SEO 无损。
-
-在文章都很长之前，这条不算问题；等到首页变慢再动它。
+要恢复混合形态，先确认能接受这个代价；否则给首篇加视觉截断
+（`max-height` + 渐变 + 「阅读全文」），正文仍在 DOM 里，对 SEO 无损。
 
 ### 6. `--overwrite` 覆盖官方组件会静默丢掉自定义导航
 
 `pnpm exec nimbus-docs add <slug> --overwrite` 会用上游版本覆盖同名文件。
 `Header.astro` 的调用方式被本项目改过（四处调用点都多传了 `sections` 用于渲染自定义顶部导航），
-直接覆盖会在**不报任何错**的情况下丢掉顶部导航。
+`ui/toc/{TOC,MobileTOC}.astro` 的可见文案也换成了中文。
+直接覆盖会在**不报任何错**的情况下丢掉顶部导航，或者把目录栏文案退回英文。
 
 覆盖前先看差异：
 
 ```bash
 pnpm exec nimbus-docs diff src/components/Header.astro
 ```
+
+### 7. 目录栏的体量随标题数线性增长
+
+文章页的右侧大纲由官方的 `<TOC>` 渲染，每条链接都自带一长串 Tailwind class，
+平均约 **900 字节**（桌面栏与移动端 `<select>` 各放一份标题）。实测：
+
+| 文章 | h2/h3 数 | 原始体积 | gzip |
+| :--- | ---: | ---: | ---: |
+| HawDB 调研 | 103 | 227 KB → 321 KB | 65 KB → 76 KB（+11 KB） |
+| 私域对比 | 21 | 44 KB → 63 KB | 15 KB → 17 KB（+2 KB） |
+| 连线拓扑 | 9 | 32 KB → 41 KB | 10 KB → 11 KB（+1 KB） |
+
+gzip 后净增最多 11 KB，可以接受。真正该留意的是**可读性**：18rem 的栏里塞 103 条导航已经偏密。
+嫌密就把 `src/pages/blog/[...slug].astro` 里的
+`getTOC(headings, { minHeadingLevel: 2, maxHeadingLevel: 3 })` 收成只到 h2。
+
+同源的一个坑：`BlogLayout` 的外壳只有在**确实有目录**时才加宽到 `xl:max-w-[68rem]`
+（用 `class:list` 条件拼出来），因为 44rem 才是正文的中文阅读宽度。
+哪天改成无条件加宽，列表页没有右侧栏却会被撑到 64rem，正文宽度直接失控。

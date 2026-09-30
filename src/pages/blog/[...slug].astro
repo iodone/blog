@@ -3,7 +3,8 @@ import type { GetStaticPaths } from "astro";
 import Icon from "@cloudflare/nimbus-docs/components/Icon.astro";
 import BlogLayout from "@/layouts/BlogLayout.astro";
 import { Badge } from "@/components/ui/badge";
-import { getCollectionStaticPaths, getCollectionPage, withBase } from "@cloudflare/nimbus-docs";
+import { MobileTOC } from "@/components/ui/toc";
+import { getCollectionStaticPaths, getCollectionPage, getTOC, withBase } from "@cloudflare/nimbus-docs";
 import { components } from "@/components";
 
 export const prerender = true;
@@ -14,7 +15,7 @@ export const getStaticPaths: GetStaticPaths = async (options) =>
 
 const page = await getCollectionPage<"blog">(Astro);
 if (page instanceof Response) return page;
-const { entry, Content, markdownUrl, ogImageUrl } = page;
+const { entry, Content, headings, markdownUrl, ogImageUrl } = page;
 const { title, description, date, tags } = entry.data;
 
 const iso = date.toISOString().slice(0, 10);
@@ -28,6 +29,12 @@ const dateLabel = new Intl.DateTimeFormat("zh-CN", {
 }).format(date);
 
 const socialImage = entry.data.socialImage ?? ogImageUrl;
+
+// Outline rail. Same pipeline the docs pages use: Astro hands the rendered
+// heading list to `getTOC`, which trims it to the depth range the rail wants
+// and gives every entry its stable anchor. h2/h3 only — the article title is
+// page chrome, not a body heading, so a depth-1 item would just duplicate it.
+const toc = getTOC(headings, { minHeadingLevel: 2, maxHeadingLevel: 3 });
 ---
 
 <BlogLayout
@@ -39,6 +46,7 @@ const socialImage = entry.data.socialImage ?? ogImageUrl;
   head={entry.data.head}
   collection={entry.collection}
   entryId={entry.id}
+  headings={toc}
 >
   <a
     href={withBase("/blog", import.meta.env.BASE_URL)}
@@ -72,6 +80,17 @@ const socialImage = entry.data.socialImage ?? ogImageUrl;
           {tags.map((tag) => (
             <Badge text={tag} variant="default" size="small" />
           ))}
+        </div>
+      )
+    }
+
+    {/* Below xl the layout hides the desktop rail, so this sticky select is
+        the only on-this-page nav. Full-bleed against the layout padding on
+        purpose, so the border spans the whole column. */}
+    {
+      toc.length > 0 && (
+        <div class="sticky top-14 z-20 -mx-5 mt-6 border-y border-border bg-background/95 px-5 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:-mx-8 lg:px-8 xl:hidden">
+          <MobileTOC headings={toc} />
         </div>
       )
     }

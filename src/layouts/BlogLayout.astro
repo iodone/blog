@@ -1,8 +1,11 @@
 ---
 /**
  * BlogLayout — single-column chrome for the blog feed, its per-entry permalink
- * pages, and the tag / archive index pages. A blog is a feed, not a doc tree:
- * no sidebar, no TOC. Just the header strip and a centered reading column.
+ * pages, and the tag / archive index pages. A blog is a feed, not a doc tree,
+ * so there is no site-tree sidebar — and the feed, tag and archive pages
+ * carry no outline either. Just the header strip and a centered reading
+ * column. Article pages opt in to a right-hand outline rail by passing
+ * `headings`; every other page leaves it undefined and gets the old shell.
  *
  * Editorial direction: the reading column carries the serif, every piece of
  * chrome (header strip, tags, pagination, "read more") stays sans. Column
@@ -13,11 +16,19 @@ import BaseLayout from "./BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import { navSections } from "@/lib/nav";
 import { withBase } from "@cloudflare/nimbus-docs/runtime";
-import type { BasePageProps } from "@cloudflare/nimbus-docs/types";
+import { TOC } from "@/components/ui/toc";
+import type { BasePageProps, TOCItem } from "@cloudflare/nimbus-docs/types";
 
-type Props = BasePageProps;
+type Props = BasePageProps & {
+  /**
+   * Article headings for the right-hand outline rail — straight from
+   * `getTOC()` in the page. Feed, tag and archive pages omit it, and both the
+   * rail and its column in the shell then render nothing at all.
+   */
+  headings?: TOCItem[];
+};
 
-const baseProps = Astro.props;
+const { headings = [], ...baseProps } = Astro.props;
 const sections = navSections(Astro.url.pathname, import.meta.env.BASE_URL);
 ---
 
@@ -55,8 +66,33 @@ const sections = navSections(Astro.url.pathname, import.meta.env.BASE_URL);
     </nav>
 
     <main id="main-content" transition:name="nb-content" class="flex-1">
-      <div class="mx-auto w-full max-w-[44rem] px-5 pt-12 pb-32 lg:px-8">
-        <slot />
+      {/* Reading column + outline rail. The shell only widens at xl, where the
+          rail exists; below that the article falls back to the single centred
+          column and the in-article mobile select takes over. 44rem is the CJK
+          measure, 18rem the rail, 2.5rem the gutter: 68rem minus the lg:px-8
+          padding leaves the reading column at 43.5rem. */}
+      <div
+        class:list={[
+          "mx-auto flex w-full max-w-[44rem] items-start gap-10 px-5 pt-12 pb-32 lg:px-8",
+          // Only widen when the rail is actually there — otherwise the reading
+          // column would stretch past its CJK measure on wide screens.
+          headings.length > 0 && "xl:max-w-[68rem]",
+        ]}
+      >
+        <div class="min-w-0 flex-1">
+          <slot />
+        </div>
+
+        {
+          headings.length > 0 && (
+            <aside
+              data-nb-toc-scroll-host
+              class="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-(--nb-toc-width) shrink-0 self-start overflow-y-auto pb-8 xl:block"
+            >
+              <TOC headings={headings} />
+            </aside>
+          )
+        }
       </div>
     </main>
   </div>
