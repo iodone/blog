@@ -1,0 +1,84 @@
+---
+/**
+ * BlogEntry — one entry in the feed. Renders the date marker, a
+ * permalink title, tag pills, and the entry's full MDX body inline (rendered
+ * with the site's MDX globals). `data-tags` feeds the filter; entries past
+ * the initial page are `data-overflow` + hidden until "load older" reveals
+ * them (older entries also reachable via /blog/page/<n> with no JS).
+ */
+import { render } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+import DateRail from "./DateRail.astro";
+import { components } from "@/components";
+import { withBase } from "@cloudflare/nimbus-docs/runtime";
+
+interface Props {
+  entry: CollectionEntry<"blog">;
+  /**
+   * Lead entry — the one post at the top of the feed that runs in full.
+   * Everything else renders a summary; see BlogFeed`s `leadFirst`.
+   */
+  lead?: boolean;
+  overflow?: boolean;
+  /** Last visible entry — drops its trailing rail segment so the timeline
+   *  closes at the final dot. The controller keeps this in sync. */
+  railEnd?: boolean;
+}
+
+const { entry, lead = false, overflow = false, railEnd = false } = Astro.props;
+const { title, date, description, tags } = entry.data;
+/** Tag URLs are CJK-preserving — the repo slugs 中文 the same way elsewhere. */
+const tagHref = (tag: string) =>
+  withBase(`/tags/${encodeURIComponent(tag)}`, import.meta.env.BASE_URL);
+const href = withBase(`/blog/${entry.id}`, import.meta.env.BASE_URL);
+const { Content } = await render(entry);
+---
+
+<article
+  class="nb-cl-entry"
+  data-entry
+  data-lead={lead ? "" : undefined}
+  data-tags={tags.join(",")}
+  data-overflow={overflow ? "" : undefined}
+  data-rail-end={railEnd ? "" : undefined}
+  hidden={overflow}
+>
+  <DateRail date={date} />
+
+  {/* `nb-cl-title-link` / `nb-cl-title` stay class-based: the title's size is
+      coupled to the rail's --cl-title-line, and the dot lights up via
+      `:has(.nb-cl-title-link:hover)` — both live in BlogFeed's styles. */}
+  <div>
+    <a href={href} class="nb-cl-title-link">
+      <h2 class="nb-cl-title">{title}</h2>
+    </a>
+
+    {
+      tags.length > 0 && (
+        <ul class="nb-cl-tags">
+          {tags.map((tag) => (
+            <li>
+              <a href={tagHref(tag)}>{tag}</a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      lead ? (
+        <div class="docs-content nb-cl-prose mt-[1.25rem] max-w-none">
+          <Content components={components} />
+        </div>
+      ) : (
+        <div class="nb-cl-excerpt">
+          {description && <p>{description}</p>}
+          <a href={href} class="nb-cl-more">
+            阅读全文
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      )
+    }
+  </div>
+</article>

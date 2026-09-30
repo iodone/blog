@@ -1,0 +1,26 @@
+---
+/**
+ * DateRail — the date marker on the timeline. Renders the full date
+ * ("2026年9月29日"); positioning is handled by the parent .nb-cl-entry
+ * (see BlogFeed). The year is inline so the feed needs no year dividers.
+ */
+interface Props {
+  date: Date;
+}
+
+const { date } = Astro.props;
+const iso = date.toISOString().slice(0, 10);
+// zh-CN label, pinned to UTC so the build machine's timezone can't shift
+// the rendered day away from the frontmatter date.
+const label = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "UTC",
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+}).format(date);
+---
+
+<div class="nb-cl-rail">
+  <time datetime={iso} class="nb-cl-date">{label}</time>
+  <span class="nb-cl-dot" aria-hidden="true"></span>
+</div>

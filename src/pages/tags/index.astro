@@ -1,0 +1,52 @@
+---
+import { getCollection } from "astro:content";
+import BlogLayout from "@/layouts/BlogLayout.astro";
+import IndexHeader from "@/components/blog/IndexHeader.astro";
+import { withBase } from "@cloudflare/nimbus-docs/runtime";
+
+export const prerender = true;
+
+const entries = await getCollection("blog", (e) => !e.data.draft);
+
+// Tag set is derived, never declared — adding a tag to a post frontmatter is
+// the whole workflow; the index and its per-tag pages follow automatically.
+const counts = new Map<string, number>();
+for (const entry of entries) {
+  for (const tag of entry.data.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+}
+
+const tags = [...counts.entries()].sort(
+  (a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh-CN"),
+);
+
+const tagHref = (tag: string) =>
+  withBase(`/tags/${encodeURIComponent(tag)}`, import.meta.env.BASE_URL);
+---
+
+<BlogLayout title="标签" description="按标签浏览全部文章" socialImage="/og/blog.png">
+  <IndexHeader title="标签" meta={`${tags.length} 个标签 · ${entries.length} 篇文章`} />
+
+  {
+    tags.length === 0 ? (
+      <p class="font-serif text-muted-foreground">还没有任何标签。</p>
+    ) : (
+      <ul class="m-0 list-none border-t border-border p-0">
+        {tags.map(([tag, count]) => (
+          <li class="border-b border-border">
+            <a
+              href={tagHref(tag)}
+              class="group flex items-baseline justify-between gap-4 py-4 no-underline"
+            >
+              <span class="font-serif text-[1.25rem] leading-snug text-foreground transition-colors group-hover:text-primary">
+                {tag}
+              </span>
+              <span class="font-sans text-[0.8125rem] tabular-nums text-muted-foreground">
+                {count}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</BlogLayout>

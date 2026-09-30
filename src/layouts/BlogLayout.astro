@@ -1,0 +1,170 @@
+---
+/**
+ * BlogLayout — single-column chrome for the blog feed, its per-entry permalink
+ * pages, and the tag / archive index pages. A blog is a feed, not a doc tree:
+ * no sidebar, no TOC. Just the header strip and a centered reading column.
+ *
+ * Editorial direction: the reading column carries the serif, every piece of
+ * chrome (header strip, tags, pagination, "read more") stays sans. Column
+ * width targets CJK long-form — roughly 40 characters per line at the serif
+ * size — rather than a Latin measure, because most of this content is Chinese.
+ */
+import BaseLayout from "./BaseLayout.astro";
+import Header from "@/components/Header.astro";
+import { navSections } from "@/lib/nav";
+import { withBase } from "@cloudflare/nimbus-docs/runtime";
+import type { BasePageProps } from "@cloudflare/nimbus-docs/types";
+
+type Props = BasePageProps;
+
+const baseProps = Astro.props;
+const sections = navSections(Astro.url.pathname, import.meta.env.BASE_URL);
+---
+
+<BaseLayout {...baseProps}>
+  <div class="flex min-h-screen flex-col">
+    <Header showSidebar={false} sections={sections} />
+
+    {/* Nimbus hides the header strip below md and expects the sidebar menu
+        button to take over — but a blog has no sidebar. Without this the
+        whole nav is unreachable on a phone, so we render our own strip. */}
+    <nav
+      aria-label="Sections"
+      class="md:hidden border-b border-border bg-card/80 backdrop-blur-lg"
+    >
+      <div
+        class="mx-auto flex w-full max-w-[44rem] items-center gap-1 overflow-x-auto px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {
+          sections.map((section) => (
+            <a
+              href={withBase(section.href, import.meta.env.BASE_URL)}
+              aria-current={section.isActive ? "page" : undefined}
+              class:list={[
+                "px-2.5 py-1 rounded-md text-[0.8125rem] font-medium no-underline whitespace-nowrap transition-colors shrink-0",
+                section.isActive
+                  ? "text-foreground bg-accent"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
+              ]}
+            >
+              {section.label}
+            </a>
+          ))
+        }
+      </div>
+    </nav>
+
+    <main id="main-content" transition:name="nb-content" class="flex-1">
+      <div class="mx-auto w-full max-w-[44rem] px-5 pt-12 pb-32 lg:px-8">
+        <slot />
+      </div>
+    </main>
+  </div>
+</BaseLayout>
+
+{/* These target MDX-rendered content (entry bodies marked `.nb-cl-prose`),
+    which has no class hooks for Tailwind utilities — so they stay global. */}
+<style is:global>
+  .nb-cl-prose p {
+    text-wrap: pretty;
+  }
+
+  /* Subtle 1px outline on entry images for consistent depth. */
+  .nb-cl-prose img {
+    outline: 1px solid var(--nb-border);
+    outline-offset: -1px;
+    border-radius: 2px;
+  }
+
+  /* ---- Editorial headings ------------------------------------------
+     Titles sit outside `.docs-content` (that class is only on the body
+     wrapper), so the serif has to be applied to them explicitly. */
+  .nb-cl-title {
+    font-family: var(--nb-font-serif);
+    font-optical-sizing: auto;
+  }
+  .nb-cl-date {
+    font-family: var(--nb-font-sans);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- Tag list ----------------------------------------------------
+     Tags are navigation now — each has a /tags/<tag> page — but they must
+     not look like buttons. In a serif page, boxes everywhere read as
+     clutter. Thin separator, muted ink, accent on hover. */
+  .nb-cl-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0.8125rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nb-cl-tags li + li::before {
+    content: "·";
+    margin-right: 0.5rem;
+    color: var(--nb-border-strong);
+  }
+  .nb-cl-tags a {
+    font-family: var(--nb-font-sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: var(--nb-muted-foreground);
+    text-decoration: none;
+    transition: color 120ms ease;
+  }
+  .nb-cl-tags a:hover {
+    color: var(--nb-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ---- Hybrid feed -------------------------------------------------
+     The lead entry runs full-length; everything below it is a summary.
+     Titles step down with the feed so the hierarchy reads without any
+     boxes or dividers. */
+  .nb-cl-entry[data-lead=""] .nb-cl-title {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .nb-cl-excerpt {
+    margin-top: 1rem;
+  }
+  .nb-cl-excerpt > p {
+    margin: 0;
+    font-family: var(--nb-font-serif);
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--nb-muted-foreground);
+    text-wrap: pretty;
+  }
+  .nb-cl-more {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.375rem;
+    margin-top: 0.875rem;
+    font-family: var(--nb-font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--nb-primary);
+    text-decoration: none;
+  }
+  .nb-cl-more span {
+    transition: transform 140ms ease;
+  }
+  .nb-cl-more:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .nb-cl-more:hover span {
+    transform: translateX(3px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nb-cl-more span {
+      transition: none;
+    }
+  }
+</style>

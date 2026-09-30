@@ -1,0 +1,79 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import BlogLayout from "@/layouts/BlogLayout.astro";
+import BlogFeed from "@/components/blog/BlogFeed.astro";
+import IndexHeader from "@/components/blog/IndexHeader.astro";
+import { withBase } from "@cloudflare/nimbus-docs/runtime";
+
+export const prerender = true;
+
+// One page per tag that actually occurs. Chinese tag names are kept verbatim
+// in the URL (percent-encoded on the wire) — the repo slugs 中文 the same way
+// in scripts/new-post.mjs, so this stays consistent site-wide.
+export async function getStaticPaths() {
+  const entries = await getCollection("blog", (e) => !e.data.draft);
+  const tags = [...new Set(entries.flatMap((e) => e.data.tags))];
+  return tags.map((tag) => ({
+    params: { tag },
+    props: { tag, entries: entries.filter((e) => e.data.tags.includes(tag)) },
+  }));
+}
+
+interface Props {
+  tag: string;
+  entries: CollectionEntry<"blog">[];
+}
+
+const { tag, entries } = Astro.props;
+
+// Sibling tags, so a reader can keep walking sideways instead of going back.
+const counts = new Map<string, number>();
+for (const entry of entries) {
+  for (const t of entry.data.tags) {
+    if (t !== tag) counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+}
+const siblings = [...counts.keys()].sort((a, b) => a.localeCompare(b, "zh-CN"));
+
+const tagHref = (t: string) =>
+  withBase(`/tags/${encodeURIComponent(t)}`, import.meta.env.BASE_URL);
+---
+
+<BlogLayout
+  title={`标签：${tag}`}
+  description={`标签「${tag}」下的全部文章`}
+  socialImage="/og/blog.png"
+>
+  <IndexHeader title={tag} meta={`${entries.length} 篇文章`} />
+
+  <BlogFeed entries={entries} leadFirst={false} />
+
+  <footer class="mt-2 border-t border-border pt-6">
+    <div class="flex flex-wrap items-baseline gap-x-2 gap-y-2">
+      <a
+        href={withBase("/tags", import.meta.env.BASE_URL)}
+        class="font-sans text-[0.8125rem] font-medium text-muted-foreground no-underline transition-colors hover:text-primary"
+      >
+        ← 所有标签
+      </a>
+      {
+        siblings.length > 0 && (
+          <span class="font-sans text-[0.8125rem] text-muted-foreground">
+            · 相关：
+            {siblings.map((t, i) => (
+              <>
+                {i > 0 && <span class="mx-1.5 text-border-strong">·</span>}
+                <a
+                  href={tagHref(t)}
+                  class="text-muted-foreground no-underline transition-colors hover:text-primary hover:underline hover:underline-offset-4"
+                >
+                  {t}
+                </a>
+              </>
+            ))}
+          </span>
+        )
+      }
+    </div>
+  </footer>
+</BlogLayout>

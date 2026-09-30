@@ -1,0 +1,31 @@
+---
+/**
+ * Shared page header for the index pages that are not the main feed
+ * (/tags, /tags/<tag>, /archive). Uses the site-wide h1 token trio and
+ * carries the serif, so these read as editorial fronts rather than as
+ * utility listings.
+ */
+interface Props {
+  title: string;
+  /** Small line under the title — counts, date range, whatever applies. */
+  meta?: string;
+}
+
+const { title, meta } = Astro.props;
+---
+
+<header class="mb-12">
+  <h1
+    class="m-0 font-serif text-balance leading-[1.1] text-foreground"
+    style="font-size:var(--nb-h1-size);font-weight:var(--nb-h1-weight);letter-spacing:var(--nb-h1-tracking)"
+  >
+    {title}
+  </h1>
+  {
+    meta && (
+      <p class="mt-3 font-serif text-pretty text-[1.0625rem] leading-normal text-muted-foreground">
+        {meta}
+      </p>
+    )
+  }
+</header>

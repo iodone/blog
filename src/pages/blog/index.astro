@@ -1,0 +1,60 @@
+---
+import Icon from "@cloudflare/nimbus-docs/components/Icon.astro";
+import { getCollection } from "astro:content";
+import BlogLayout from "@/layouts/BlogLayout.astro";
+import BlogFeed from "@/components/blog/BlogFeed.astro";
+import BlogFilter from "@/components/blog/BlogFilter.astro";
+import { withBase } from "@cloudflare/nimbus-docs/runtime";
+
+export const prerender = true;
+
+const PAGE_SIZE = 20;
+
+const entries = await getCollection("blog", (e) => !e.data.draft);
+const tags = [...new Set(entries.flatMap((e) => e.data.tags))].sort();
+
+const title = "Meta42";
+const description = "调研 · 深度思考 · 知识库";
+---
+
+<BlogLayout
+  title={title}
+  description={description}
+  socialImage="/og/blog.png"
+  head={[
+    {
+      tag: "link",
+      attrs: {
+        rel: "alternate",
+        type: "application/rss+xml",
+        title: `${title} RSS`,
+        href: withBase("/blog/rss.xml", import.meta.env.BASE_URL),
+      },
+    },
+  ]}
+>
+  <header class="mb-14">
+    <div class="flex items-center justify-between gap-4">
+      {/* h1 token trio via inline style — site-wide page-title convention. */}
+      <h1
+        class="m-0 font-serif text-balance leading-[1.1] text-foreground"
+        style="font-size:var(--nb-h1-size);font-weight:var(--nb-h1-weight);letter-spacing:var(--nb-h1-tracking)"
+      >
+        {title}
+      </h1>
+      <a
+        href={withBase("/blog/rss.xml", import.meta.env.BASE_URL)}
+        class="inline-flex shrink-0 items-center gap-1.5 rounded-[0.625rem] border border-border py-1.5 pr-3 pl-2.5 text-[0.8125rem] font-medium text-muted-foreground no-underline transition-[color,border-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-border-strong hover:text-foreground active:scale-[0.97] motion-reduce:active:scale-100"
+      >
+        <Icon name="ph:rss" class="h-4 w-4" />
+        <span>RSS</span>
+      </a>
+    </div>
+    <p class="mt-2.5 font-serif text-pretty text-[1.125rem] leading-normal text-muted-foreground">
+      {description}
+    </p>
+    <BlogFilter tags={tags} />
+  </header>
+
+  <BlogFeed entries={entries} pageSize={PAGE_SIZE} />
+</BlogLayout>

@@ -1,0 +1,83 @@
+---
+import type { GetStaticPaths } from "astro";
+import Icon from "@cloudflare/nimbus-docs/components/Icon.astro";
+import BlogLayout from "@/layouts/BlogLayout.astro";
+import { Badge } from "@/components/ui/badge";
+import { getCollectionStaticPaths, getCollectionPage, withBase } from "@cloudflare/nimbus-docs";
+import { components } from "@/components";
+
+export const prerender = true;
+export const getStaticPaths: GetStaticPaths = async (options) =>
+  (await getCollectionStaticPaths("blog")(options)).filter(
+    (path) => path.params.slug,
+  );
+
+const page = await getCollectionPage<"blog">(Astro);
+if (page instanceof Response) return page;
+const { entry, Content, markdownUrl, ogImageUrl } = page;
+const { title, description, date, tags } = entry.data;
+
+const iso = date.toISOString().slice(0, 10);
+// zh-CN label, pinned to UTC so the build machine's timezone can't shift
+// the rendered day away from the frontmatter date.
+const dateLabel = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "UTC",
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+}).format(date);
+
+const socialImage = entry.data.socialImage ?? ogImageUrl;
+---
+
+<BlogLayout
+  title={title}
+  description={description}
+  markdownUrl={markdownUrl}
+  socialImage={socialImage}
+  noindex={entry.data.noindex}
+  head={entry.data.head}
+  collection={entry.collection}
+  entryId={entry.id}
+>
+  <a
+    href={withBase("/blog", import.meta.env.BASE_URL)}
+    class="group mb-9 -ml-0.5 inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-muted-foreground no-underline transition-[color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-foreground active:scale-[0.98] motion-reduce:active:scale-100"
+  >
+    <Icon
+      name="ph:arrow-left"
+      class="h-4 w-4 transition-transform duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-x-0.5 motion-reduce:transform-none"
+    />
+    <span>Blog</span>
+  </a>
+
+  {/* data-pagefind-body: the post permalink is the canonical, indexable copy.
+      The feed at /blog inlines every post body too — it is deliberately left
+      unmarked so search returns one hit per article, not one per surface. */}
+  <article data-pagefind-body>
+    <time datetime={iso} class="block text-[0.8125rem] font-medium tabular-nums text-muted-foreground">
+      {dateLabel}
+    </time>
+    {/* h1 token trio via inline style — site convention. */}
+    <h1
+      class="mt-2 text-balance leading-[1.15] text-foreground"
+      style="font-size:var(--nb-h1-size);font-weight:var(--nb-h1-weight);letter-spacing:var(--nb-h1-tracking)"
+    >
+      {title}
+    </h1>
+
+    {
+      tags.length > 0 && (
+        <div class="mt-4 flex flex-wrap gap-1.5">
+          {tags.map((tag) => (
+            <Badge text={tag} variant="default" size="small" />
+          ))}
+        </div>
+      )
+    }
+
+    <div class="docs-content nb-cl-prose mt-9 max-w-none">
+      <Content components={components} />
+    </div>
+  </article>
+</BlogLayout>
