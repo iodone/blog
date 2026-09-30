@@ -5,12 +5,14 @@
 > 两者都读；冲突时以本文件为准。`CLAUDE.md` 转发到 `AGENT.md`。
 
 **站点**：Meta42（调研 · 深度思考 · 认知）— <https://blog.meta42.me/>
+**源码**：GitHub **私有**仓库 `iodone/blog`（本地在 `projects/blog/`）。
 **技术栈**：Nimbus（`@cloudflare/nimbus-docs`）/ Astro，静态输出，Cloudflare Workers + 自定义域。
-**部署拓扑**：一个子域一台 Worker，`meta42.me` 下的博客是其中一台（见 §3）。
+**部署拓扑**：GitHub 管源码，Cloudflare Workers Builds 管发布；一个子域一台 Worker，
+`meta42.me` 下的博客是其中一台（见 §3）。
 
 ## 0. 先记住三件事
 
-1. **发布 = 推 `main`。** Cloudflare 的 Git 集成自动构建并发布。没有 staging、没有草稿分支——在 `main` 上的每次提交都会上线。
+1. **发布 = 推 `main`。** Cloudflare 的 Git 集成（Workers Builds）自动构建并发布。没有 staging、没有草稿分支——在 `main` 上的每次提交都会上线。**仓库是私有的，站点是公开的**：私有只挡源码，不挡已发布的正文，推之前自己看清。
 2. **内容是人工挑选的，没有自动同步。** 不存在"从某处导入一批"的机制。每篇文章都要逐篇写、逐篇审。
 3. **顶部导航的唯一真源是 `src/lib/nav.ts`。** 别在别处硬编导航项。
 
@@ -64,9 +66,15 @@ git push
 Cloudflare 拉代码后跑两步，和本地同源：
 
 1. `pnpm exec nimbus-docs check` — 免构建自检。内容或配置有问题时**先失败**，坏站点不会上线
-2. `pnpm build` → `dist/` 作为静态资源随 Worker 上传
+2. `pnpm run build` → `dist/` 作为静态资源随 Worker 上传
 
-进度看 Cloudflare dashboard 的 **Deployments** 页。
+进度看 Cloudflare dashboard 的 **Builds**（构建日志）与 **Deployments**（上线版本）。
+**构建失败不影响线上**——上一个版本继续服务，修好再推一次即可。
+
+**流水线接法**（换账号或重建时照做）：Workers & Pages → `meta42-blog` → Settings → Builds → Connect →
+GitHub 账号 `iodone` → 仓库 `blog` → 生产分支 `main`；构建命令
+`pnpm exec nimbus-docs check && pnpm run build`，部署命令 `npx wrangler deploy`，变量 `NODE_VERSION=22`。
+API token 自动创建。
 
 **域名拓扑**：`blog.meta42.me` 由 `wrangler.jsonc` 的 `routes`（`custom_domain: true`）声明。
 改域名只动两处：这里 + `astro.config.ts` 的 `site`（后者驱动 canonical / og:url / sitemap /
@@ -76,12 +84,13 @@ robots.txt / RSS / `llms.txt`）。**只改 `wrangler.jsonc` 忘了 `site`，站
 **回滚**：`git revert <bad-commit> && git push`，或在 dashboard 的 Deployments 里把历史版本重新设为当前版本。
 
 **手动部署**（救火用）：`pnpm deploy`（= `astro check && astro build && wrangler deploy`），需先 `wrangler login`。
+它**跳过 `nimbus-docs check`**，只在 CI 挂了或要紧急绕过流水线时用。
 
 ## 4. 提交前必跑
 
 ```bash
 pnpm exec nimbus-docs check    # 五项：Environment / Structure / Migrations / Authoring / Types，应全 ✓
-pnpm build                     # 基线：14 页，Pagefind 索引 4 页
+pnpm build                     # 基线：13 页，Pagefind 索引 4 页
 pnpm typecheck                 # 基线：117 文件，0 错 0 警 0 提示
 ```
 

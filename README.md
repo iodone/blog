@@ -4,6 +4,10 @@
 当前以博客（`/blog`）为主体，文档区在逐步建设中。
 
 站点已发布在 **https://blog.meta42.me/**（Cloudflare Workers，一个子域一台 Worker）。
+源码在 GitHub 私有仓库 `iodone/blog`：**GitHub 管源码，Cloudflare 管发布**，推 `main` 即上线。
+
+> ⚠️ **仓库私有 ≠ 站点私有。** 私有只挡住源码，挡不住已经发出去的正文——`main` 上的每一行
+> 都会立刻出现在 <https://blog.meta42.me/>，全球可读，没有回收站。发布前把内部指代删干净。
 
 ## 本地运行
 
@@ -49,7 +53,7 @@ grep -o "https://[a-z0-9.]*" dist/llms.txt | sort -u                    # 2. 域
 
 ### 推送即发布
 
-`main` 上只要有推送，Cloudflare 就构建并发布这台 Worker，没有别的步骤：
+GitHub 管源码，Cloudflare 管发布：`main` 上只要有推送，Cloudflare 就构建并发布这台 Worker，没有别的步骤：
 
 ```bash
 git add -A
@@ -61,9 +65,15 @@ git push
 
 1. `pnpm exec nimbus-docs check`——免构建自检（环境 / 结构 / 写作规范 / 类型 / 迁移），
    内容或配置有问题时**先失败**，不会把坏站点推上去；
-2. `pnpm build`，`dist/` 作为静态资源随 Worker 一起上传。
+2. `pnpm run build`（= `astro build`），`dist/` 作为静态资源随 Worker 一起上传。
 
-进度看 Cloudflare dashboard 的 **Deployments** 页，通常一两分钟。
+进度看 Cloudflare dashboard：Worker 的 **Builds** 是构建日志，**Deployments** 是上线版本，
+通常一两分钟。**构建失败不影响线上**——上一个版本继续服务，修好再推一次即可。
+
+**流水线是怎么接的**（换账号或重建时照做）：Workers & Pages → `meta42-blog` → Settings → Builds →
+Connect → GitHub 账号 `iodone` → 仓库 `blog` → 生产分支 `main`。构建命令
+`pnpm exec nimbus-docs check && pnpm run build`，部署命令 `npx wrangler deploy`，
+变量 `NODE_VERSION=22`（仓库 `engines` 要求 ≥ 22.12）。API token 由 Cloudflare 自动创建。
 
 ### 部署形态：一个子域一台 Worker
 
@@ -90,7 +100,8 @@ pnpm preview:cf      # astro build && wrangler dev —— 本地跑一遍真实�
 pnpm deploy          # astro check && astro build && wrangler deploy —— 救火用，需先 wrangler login
 ```
 
-日常不用手跑：推送就是发布。
+日常不用手跑：推送就是发布。只有 CI 挂了、或要绕开流水线紧急上线时才走 `pnpm deploy`——
+它会跳过 `nimbus-docs check` 那道闸。
 
 ### 新增一篇文章
 
