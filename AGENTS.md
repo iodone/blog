@@ -91,7 +91,7 @@ pnpm typecheck                 # 基线：117 文件，0 错 0 警 0 提示
 | 大纲收纳到第几级标题 | `src/pages/blog/[...slug].astro` 的 `getTOC(...)` |
 | 每页文章数 | `src/pages/blog/index.astro` **和** `src/pages/blog/page/[page].astro`（两处 `PAGE_SIZE`，必须一起改） |
 | 标签页 / 归档页 | `src/pages/tags/`、`src/pages/archive.astro` |
-| 字体 | `src/layouts/BaseLayout.astro` 的 import + `globals.css` 的 `--nb-font-serif`。**换西文衬线前先看坑 7；新增页面级 `<h1>` 看坑 9 和坑 10** |
+| 字体 | `src/layouts/BaseLayout.astro` 的 import + `globals.css` 的 `--nb-font-serif`。**换西文衬线前先看坑 7；新增页面级 `<h1>` 或展示级文字看坑 9 和坑 10** |
 
 ## 6. 这个项目自己加的东西（升级框架时最容易踩）
 
@@ -186,10 +186,26 @@ Firefox 没有对应属性，那边就退回今天的样子。
 
 刻意保持无衬线的是 UI chrome，别顺手改：`.nb-cl-date`、`.nb-cl-more`、侧栏 TOC 标签（`本页目录`，14px）、`404` 之外的框架组件。
 
-**10. 页面级 H1 的行高是硬约束，不是手感——别写 `leading-tight` / `leading-[1.1]` / `leading-[1.15]`。**
-40px 下中文回退字体（宋体 SC / 苹方）的行框是 **50px = 1.25em**，纯拉丁的 Inter 也要 47px。行高写 1.1 时框只有 44px，**字形会画到自己的行框外面**：单行标题看不出来，两行标题就明显挤在一起（2026-09-30 全站 9 个路由逐个量过，页面级 H1 无一幸免；`/archive/` 的年份标题更狠，`leading-none` = 1.0）。
+**10. 行高是硬约束，不是手感——别写 `leading-tight` / `leading-[1.1]` / `leading-1.2` 这类数字。**
 
-现在行高进 token：`--nb-h1-leading: 1.35`、`--nb-h2-leading: 1.3`（都在 `globals.css`，注释里写了推导）。所以页面级 H1 的排版参数是**四件套**——size / weight / tracking / leading，全部写在 inline style 里；class 只留 `font-serif` 和版式工具类（`m-0`、`text-balance`、`mt-2` 之类），**不要再加 `leading-*`**。
+判据只有一条：**行高必须 ≥ 字体自己的 ascent + descent（字形盒）**。低于它，字形就画到自己的行框外面——单行看不出来，**多行时逐行累积**，就是「挤在一起」。
+
+2026-09-30 用 `Range.getBoundingClientRect()` 全站逐元素量过，本字体栈只有两个下限，而且**与字号无关**：
+
+| 字体（用在哪） | 字形盒 | 实测字号 |
+| :--- | :--- | :--- |
+| Noto Serif Variable（页面 H1、卡片标题、年份标题） | **1.363em** | 40 / 28 / 22px 三个字号结果一致 |
+| Inter + 中文回退（卡片日期） | **1.192em** | 13px |
+
+所以行高只有两个 token，都在 `globals.css`（注释里写了推导）：`--nb-leading-serif: 1.4`、`--nb-leading-sans: 1.25`；`--nb-h1-leading` / `--nb-h2-leading` 是前者的别名。**新增展示级文字一律引用这两个 token，不许再手写数字。**
+
+落点清单（改版式时对照检查）：
+
+- 页面级 H1（9 个路由）：四件套 size / weight / tracking / leading 全写在 inline style 里；class 只留 `font-serif` 和版式工具类（`m-0`、`text-balance`、`mt-2`），**不要加 `leading-*`**。
+- 列表卡片 `src/components/blog/BlogFeed.astro`：`.nb-cl-title`（22px）与 `.nb-cl-date`（13px）；`--cl-title-line`（rail 的垂直对齐单位）必须跟着标题行高走，否则日期和圆点会偏离标题首行中线。
+- Lead 卡片 `src/layouts/BlogLayout.astro` 的 `.nb-cl-entry[data-lead=""] .nb-cl-title`（2rem）——**当前三个页面都传 `leadFirst={false}`，这段是休眠代码，规则一样要守**。
+- `/archive/` 的年份标题（1.75rem）。
+- 正文里的 h2/h3 不用管：`prose.css` 让它们继承 `--nb-font-serif-leading: 1.9`，远高于下限。
 
 ## 8. 不要做
 
@@ -200,4 +216,4 @@ Firefox 没有对应属性，那边就退回今天的样子。
 - 不要直接 import `.mdx` —— 用 `<Render file="..." />`
 - 不要把文章放进 `docs` 集合；文章一律进 `src/content/blog/`
 - 不要移除 `BaseLayout.astro` 里的 `<AgentDirective />`（它负责把 agent 指向 `/llms.txt`）
-- 不要在页面级 `<h1>` 上漏掉 `font-serif`（见坑 9，它不会从正文继承），也不要给它加 `leading-*` 工具类（行高走 `--nb-h1-leading`，见坑 10）
+- 不要在页面级 `<h1>` 上漏掉 `font-serif`（见坑 9，它不会从正文继承），也不要给它加 `leading-*` 工具类（行高走 `--nb-leading-serif`，见坑 10）

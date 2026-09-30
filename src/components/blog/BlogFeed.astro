@@ -89,7 +89,7 @@ const lastVisibleIndex = Math.min(cap, sorted.length) - 1;
     --body-x: 8rem;
     /* Title's first line box (font 1.375rem × lh 1.25). The rail matches it
        so the date, dot, and title's first line share one horizontal axis. */
-    --cl-title-line: calc(1.375rem * 1.25);
+    --cl-title-line: calc(1.375rem * var(--nb-leading-serif));
     position: relative;
   }
 
@@ -146,7 +146,7 @@ const lastVisibleIndex = Math.min(cap, sorted.length) - 1;
     text-align: right;
     font-size: 0.8125rem;
     font-weight: 500;
-    line-height: 1.1;
+    line-height: var(--nb-leading-sans);
     font-variant-numeric: tabular-nums;
     color: var(--nb-muted-foreground);
     white-space: nowrap;
@@ -180,7 +180,7 @@ const lastVisibleIndex = Math.min(cap, sorted.length) - 1;
     font-size: 1.375rem;
     font-weight: 600;
     letter-spacing: -0.02em;
-    line-height: 1.25;
+    line-height: var(--nb-leading-serif);
     color: var(--nb-foreground);
     margin: 0;
     text-wrap: balance;
