@@ -74,7 +74,7 @@ git push
 
 ```bash
 pnpm new:post --title "文章标题" --tags "tag1,tag2"
-# 或从已有的 markdown 草稿导入（复制，不做同步）
+# 或从已有的 markdown 文件导入
 pnpm import:post /path/to/draft.md --tags "tag1,tag2" --description "一句话摘要"
 ```
 
