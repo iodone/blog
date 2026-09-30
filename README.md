@@ -73,7 +73,7 @@ git push
 ### 新增一篇文章
 
 ```bash
-pnpm new:post --title "文章标题" --tags "tag1,tag2"
+pnpm new:post --title "文章标题" --description "一句话摘要" --tags "tag1,tag2"
 # 或从已有的 markdown 文件导入
 pnpm import:post /path/to/draft.md --tags "tag1,tag2" --description "一句话摘要"
 ```
@@ -83,7 +83,7 @@ pnpm import:post /path/to/draft.md --tags "tag1,tag2" --description "一句话�
 ```yaml
 ---
 title: 文章标题          # 必填
-description: 一句话摘要   # 可选；用于 RSS、OG 卡片与列表
+description: 一句话摘要   # schema 里可选，但请务必写；用于 RSS、OG 卡片与列表摘要
 date: 2026-09-29         # 必填；驱动时间线倒序与日期标记
 tags: ["meta", "note"]   # 可选，字符串数组；驱动标签筛选
 ---

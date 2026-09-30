@@ -17,7 +17,7 @@
 
 ```bash
 # 建空骨架
-pnpm new:post --title "文章标题" --tags "tag1,tag2"
+pnpm new:post --title "文章标题" --description "一句话摘要" --tags "tag1,tag2"
 pnpm new:post --title "My Post" --date 2026-09-29 --tags "meta,note" --slug my-post
 
 # 从已有的 markdown 文件导入（复制，之后两边各自演化，不回流）
@@ -25,6 +25,8 @@ pnpm import:post path/to/draft.md --tags "tag1,tag2" --description "一句话摘
 ```
 
 导入脚本会剥掉源文件开头的 H1（避免和 frontmatter 的 `title` 重复），正文一个字符不改。
+
+`description` 两个脚本都收：`import:post` 缺省时会依次回退到源文件 frontmatter、正文第一段（≈120 字），`new:post` 不给就是空串——**空 description 的卡片没有摘要，只剩「阅读全文→」**，别留空。
 两个脚本都支持 `--force` 覆盖同名文件；不加则拒绝覆盖并非零退出。
 
 **frontmatter** — 文章落在 `src/content/blog/<slug>.md`：

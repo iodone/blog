@@ -3,8 +3,8 @@
  * new-post.mjs — create a blog post stub at src/content/blog/<slug>.mdx.
  *
  * Usage:
- *   node scripts/new-post.mjs --title "开始写博客" [--date 2026-09-29]
- *     [--tags "meta,note"] [--slug my-slug] [--force]
+ *   node scripts/new-post.mjs --title "开始写博客" [--description "一句话摘要"]
+ *     [--date 2026-09-29] [--tags "meta,note"] [--slug my-slug] [--force]
  *
  * Zero dependencies — node:fs + node:path only. Requires Node >= 22.
  */
@@ -47,7 +47,7 @@ function parseArgs(argv) {
       out.force = true;
       continue;
     }
-    if (!["title", "date", "tags", "slug"].includes(key)) {
+    if (!["title", "description", "date", "tags", "slug"].includes(key)) {
       fail(`unknown flag: --${key}`);
     }
     out[key] = value;
@@ -119,7 +119,7 @@ if (existsSync(filePath) && !args.force) {
 const frontmatter = [
   "---",
   `title: ${JSON.stringify(args.title.trim())}`,
-  `description: ""`,
+  `description: ${JSON.stringify((args.description ?? "").trim())}`,
   `date: ${date}`,
   tags.length
     ? `tags:\n${tags.map((t) => `  - ${JSON.stringify(t)}`).join("\n")}`
