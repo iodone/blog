@@ -88,11 +88,17 @@
 		"JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "Cascadia Code",
 		"Source Code Pro", Menlo, Consolas, monospace;
 
-	/* Editorial serif — Latin self-hosted (Newsreader), CJK falls back to the
-	   platform Song/Ming face. Noto Serif SC would be pixel-identical everywhere
-	   but ships 87 MB unpacked; see README for the pyftsubset path if that matters. */
+	/* Editorial serif — Latin self-hosted (Noto Serif Variable), CJK falls back
+	   to the platform Song/Ming face. Noto Serif SC would be pixel-identical
+	   everywhere but ships 87 MB unpacked; see README for the pyftsubset path.
+
+	   The Latin face is chosen for x-height balance, not taste. Measured at 17px
+	   against Songti SC's 12.6px glyph: Noto Serif x-height 9.1px (ratio 1.38),
+	   Newsreader 7.4px (ratio 1.71). A small x-height makes lowercase Latin read
+	   a size smaller than the Chinese next to it, which is what made mixed runs
+	   look unsettled. See prose.css for the boundary-spacing half of the fix. */
 	--nb-font-serif:
-		"Newsreader Variable", "Newsreader", "Songti SC", "STSong",
+		"Noto Serif Variable", "Noto Serif", "Songti SC", "STSong",
 		"Noto Serif CJK SC", "Source Han Serif SC", "SimSun", Georgia, serif;
 	--nb-font-serif-size: 1.0625rem;
 	--nb-font-serif-leading: 1.9;

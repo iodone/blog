@@ -388,3 +388,46 @@
 .docs-content :where(button, input, select, textarea, .nb-badge) {
   font-family: var(--nb-font-sans);
 }
+
+/* ------------------------------------------------------------
+ * CJK ↔ Latin boundary spacing
+ * ------------------------------------------------------------
+ * Until now there was none: gaps between Chinese and Latin existed
+ * only where the author happened to type a space, so one line could
+ * be spaced three different ways. That inconsistency is most of what
+ * "mixed typesetting looks messy" means here.
+ *
+ * Two declarations, deliberately in this order — it is not a typo:
+ *
+ *   `normal`  is what Chrome honours today. Measured in Chrome 140 on a
+ *             CJK+Latin run: unset 174.82px, `normal` 179.07px,
+ *             `no-autospace` 174.82px. So spacing is OFF by default and
+ *             `normal` is what turns it on.
+ *   the pair  is the spelling CSS Text 4 specifies. Chrome 140 does not
+ *             accept it and drops the declaration, leaving `normal` to win.
+ *             A future engine implementing the spec takes the last valid
+ *             declaration — still on. Reversing the two would make such an
+ *             engine resolve to `normal` = no-autospace and switch the
+ *             spacing back off.
+ *
+ * Chrome/Edge only. Firefox has no equivalent property, so there it
+ * degrades to today's behaviour — the hand-typed space. Inline code needs
+ * no fallback: it already carries 0.375rem of its own padding.
+ *
+ * `text-spacing-trim` is intentionally absent: all four of its accepted
+ * values produced byte-identical output on inline Chinese punctuation, so
+ * it would be dead weight.
+ *
+ * Scope is the article body only. List pages, cards and nav are untouched.
+ * ------------------------------------------------------------ */
+.docs-content {
+  text-autospace: normal;
+  text-autospace: ideograph-alpha ideograph-numeric;
+}
+
+/* Wrapping half of the same problem. `strict` tightens the rules that stop
+   a line before closing punctuation; a no-op for pure Chinese, meaningful
+   as soon as kana or halfwidth forms appear. */
+.docs-content {
+  line-break: strict;
+}

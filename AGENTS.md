@@ -91,7 +91,7 @@ pnpm typecheck                 # 基线：117 文件，0 错 0 警 0 提示
 | 大纲收纳到第几级标题 | `src/pages/blog/[...slug].astro` 的 `getTOC(...)` |
 | 每页文章数 | `src/pages/blog/index.astro` **和** `src/pages/blog/page/[page].astro`（两处 `PAGE_SIZE`，必须一起改） |
 | 标签页 / 归档页 | `src/pages/tags/`、`src/pages/archive.astro` |
-| 字体 | `src/layouts/BaseLayout.astro` 的 import + `globals.css` 的字体栈 |
+| 字体 | `src/layouts/BaseLayout.astro` 的 import + `globals.css` 的 `--nb-font-serif`。**换西文衬线前先看坑 7** |
 
 ## 6. 这个项目自己加的东西（升级框架时最容易踩）
 
@@ -149,6 +149,26 @@ pkill -f "astro dev"; pnpm dev --port 4321
 
 **6. `leadFirst` 一旦打开，首页体量由最新一篇决定。**
 默认关（所有列表都是统一摘要卡片）。传 `true` 会回到「最新一篇全文内联」，119KB 的文章会让首页涨到约 236KB。
+
+**7. 换西文衬线字体，先量 x 高配平，别按好看选。**
+正文的衬线是「西文用自托管字体 + 中文回退到平台宋体」的组合。两者同为 17px，但汉字墨高约 12.6px，西文小写的高度（x 高）决定它看起来是同级还是小一号：
+
+| 西文（配 Songti SC） | x 高 | 汉字/x高 |
+| :--- | ---: | ---: |
+| Newsreader（原用） | 7.4 | **1.71** |
+| Georgia | 8.2 | 1.53 |
+| Lora | 8.5 | 1.48 |
+| Source Serif 4 | 8.8 | 1.43 |
+| **Noto Serif（现用）** | **9.1** | **1.38** |
+
+比值越接近 1 越齐，1.71 是本表的离群值——小写字母明显比中文矮一档，这正是「中英混排看着乱」的头号来源，**跟空格多少无关**。换字体后用同一张表复核，别只看截图。
+
+**8. `text-autospace` 的 `normal` 不是默认值，两条声明也不能调换顺序。**
+Chrome 140 实测：不写是 174.82px，写 `normal` 179.07px，写 `no-autospace` 174.82px——**默认关，`normal` 才是开**。但 CSS Text 4 把 `normal` 定义为 no-autospace，所以 `prose.css` 里写了两条：先 `normal`（今天生效），再 `ideograph-alpha ideograph-numeric`（规范拼法，Chrome 现在解析不了会丢弃）。**调换顺序会让将来符合规范的引擎把间距关掉。**
+
+另外实测两件事，免得误判它的作用：文章里**已经有空格的边界它不会再加一层**（差值 0.00px）；现有文章 1137 处中英边界全部是作者自己敲的空格，紧贴的 0 处——所以它对当前内容是**零影响**，纯粹是给未来漏敲空格的内容兜底。整篇正文高度开关前后完全一致（71078.5px）。
+
+Firefox 没有对应属性，那边就退回今天的样子。
 
 ## 8. 不要做
 

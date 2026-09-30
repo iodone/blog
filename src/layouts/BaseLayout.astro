@@ -1,9 +1,12 @@
 ---
 import "@fontsource-variable/inter";
 import "@fontsource-variable/jetbrains-mono";
-// Latin serif for editorial prose (opsz = optical size axis; italic included).
-import "@fontsource-variable/newsreader/opsz.css";
-import "@fontsource-variable/newsreader/opsz-italic.css";
+// Latin serif for editorial prose, picked for x-height balance rather than
+// taste: at 17px Noto Serif's x-height is 9.1px against Songti's 12.6px glyph
+// (ratio 1.38), where Newsreader was 7.4px (ratio 1.71) and so read a size
+// smaller than the Chinese around it. Real italic included, not synthesised.
+import "@fontsource-variable/noto-serif/wght.css";
+import "@fontsource-variable/noto-serif/wght-italic.css";
 import "../styles/globals.css";
 import "../styles/prose.css";
 import { ClientRouter } from "astro:transitions";
