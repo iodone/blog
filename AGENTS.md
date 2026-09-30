@@ -91,7 +91,7 @@ pnpm typecheck                 # 基线：117 文件，0 错 0 警 0 提示
 | 大纲收纳到第几级标题 | `src/pages/blog/[...slug].astro` 的 `getTOC(...)` |
 | 每页文章数 | `src/pages/blog/index.astro` **和** `src/pages/blog/page/[page].astro`（两处 `PAGE_SIZE`，必须一起改） |
 | 标签页 / 归档页 | `src/pages/tags/`、`src/pages/archive.astro` |
-| 字体 | `src/layouts/BaseLayout.astro` 的 import + `globals.css` 的 `--nb-font-serif`。**换西文衬线前先看坑 7** |
+| 字体 | `src/layouts/BaseLayout.astro` 的 import + `globals.css` 的 `--nb-font-serif`。**换西文衬线前先看坑 7；新增页面级 `<h1>` 看坑 9** |
 
 ## 6. 这个项目自己加的东西（升级框架时最容易踩）
 
@@ -170,6 +170,22 @@ Chrome 140 实测：不写是 174.82px，写 `normal` 179.07px，写 `no-autospa
 
 Firefox 没有对应属性，那边就退回今天的样子。
 
+**9. 页面级 H1 不会自动继承衬线——谁写标签谁负责带上 `font-serif`。**
+正文的衬线规则只作用于 `.docs-content` 内部（`prose.css`），而所有页面大标题都写在 `.docs-content` **外面**，必须自己声明字族。`IndexHeader.astro` 的注释把约定写明了：站点每个页面级 H1 都用衬线，读起来才是「编辑部」而不是工具页。
+
+2026-09-30 全站核查：7 个 `<h1>` 里 **5 个漏了 `font-serif`**（首页、三篇文章页、`/about/`、404，以及分页的 `/blog/page/N`——它要等文章超过 20 篇才会暴露），只有 `/blog/`、`/tags/`、`/archive/` 是对的。因为 H1 直接落到 `html` 的 `--nb-font-sans`，标题会变成无衬线 Inter，跟同页 h2/h3 打架。
+
+**新增任何 `<h1>`，照 `IndexHeader.astro` 的样子写：**
+
+```astro
+<h1
+  class="m-0 font-serif text-balance leading-[1.1] text-foreground"
+  style="font-size:var(--nb-h1-size);font-weight:var(--nb-h1-weight);letter-spacing:var(--nb-h1-tracking)"
+>
+```
+
+刻意保持无衬线的是 UI chrome，别顺手改：`.nb-cl-date`、`.nb-cl-more`、侧栏 TOC 标签（`本页目录`，14px）、`404` 之外的框架组件。
+
 ## 8. 不要做
 
 - 不要手工编辑 `dist/` —— 它是构建产物
@@ -179,3 +195,4 @@ Firefox 没有对应属性，那边就退回今天的样子。
 - 不要直接 import `.mdx` —— 用 `<Render file="..." />`
 - 不要把文章放进 `docs` 集合；文章一律进 `src/content/blog/`
 - 不要移除 `BaseLayout.astro` 里的 `<AgentDirective />`（它负责把 agent 指向 `/llms.txt`）
+- 不要在页面级 `<h1>` 上漏掉 `font-serif`（见坑 9，它不会从正文继承）
