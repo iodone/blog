@@ -19,10 +19,10 @@ const nimbusConfig = defineNimbusConfig({
   // CHANGE_ME: your project's name — used for <title>, the home H1, and OG.
   title: "Meta42",
   // CHANGE_ME: a one-line description of your docs — used for meta + OG.
-  description: "调研 · 深度思考 · 知识库",
+  description: "调研 · 深度思考 · 认知",
   locale: "zh-CN",
   github: null,
-  socialImageAlt: "Meta42 · 调研 · 深度思考 · 知识库",
+  socialImageAlt: "Meta42 · 调研 · 深度思考 · 认知",
   sidebar: {
     // Keep the default docs tree (same shape the filesystem autogenerate
     // builds), then make the blog feed reachable from the docs chrome.
