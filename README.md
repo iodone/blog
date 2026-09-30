@@ -44,8 +44,14 @@ git commit -m "post: 新增 xxx"
 git push
 ```
 
-工作流做的就是 `pnpm install --frozen-lockfile` + `pnpm build`，再把 `dist/` 交给 Pages——
-和本地跑的是同一条命令。进度看仓库的 **Actions** 标签页，通常一分钟内完成。
+工作流做三件事，和本地跑的是同一条命令：
+
+1. `pnpm install --frozen-lockfile`
+2. `pnpm exec nimbus-docs check` —— 免构建自检（环境 / 结构 / 写作规范 / 类型 / 迁移），
+   内容或配置有问题时**先失败**，不会把坏站点推上去；
+3. `pnpm build`，再把 `dist/` 交给 Pages。
+
+进度看仓库的 **Actions** 标签页，通常一分钟内完成。
 
 **为什么不需要 `base`**：仓库名恰好是 `iodone.github.io`，属于 GitHub 的「用户站点」，
 发布在域名根。若改成项目仓库（`iodone.github.io/REPO/`），`astro.config.ts` 要加 `base`，
@@ -326,6 +332,10 @@ rm -rf .astro node_modules/.astro dist && pnpm build
 ```
 
 纯新增文章、只改正文时不会触发。
+
+**顺带一个信号**：脏工作区里构建，CSS 产物会虚胖。本站实测过同一份源码——
+脏目录下 `nav.*.css` 约 149 KB，`rm -rf .astro node_modules/.astro dist` 之后重建只有约 69 KB，
+且与 CI 产物**哈希一致**。所以 CSS 体积突然翻倍，是清缓存的信号，不是样式变多了。
 
 ### 2. `site` 决定所有绝对 URL
 

@@ -1,14 +1,11 @@
 name: Deploy to GitHub Pages
 
-# Static output, so there is nothing to run server-side: build `dist` and hand
-# it to Pages. `pnpm build` is the same command used locally, which is the
-# point — CI is a place the build runs, not a second build system.
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
+# Pages needs to read the repo, write a deployment, and mint an OIDC token.
 permissions:
   contents: read
   pages: write
@@ -24,12 +21,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      # Reads `packageManager` from package.json — no version to drift here.
-      - uses: pnpm/action-setup@v4
+      # Reads `packageManager` from package.json - no version to drift here.
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -37,13 +34,19 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # Build-free preflight: env, structure, authoring rules, types, migrations.
+      # Fails fast on content/config problems that would otherwise surface as a
+      # broken deploy. Same command as the README upgrade section.
+      - name: Nimbus preflight
+        run: pnpm exec nimbus-docs check
+
       - name: Build
         run: pnpm build
 
       # Writes the resolved Pages URL into the artifact; harmless if unused.
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
@@ -55,4 +58,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
