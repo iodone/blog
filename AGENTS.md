@@ -4,12 +4,13 @@
 > `AGENT.md`（单数）是 Nimbus 框架自带的指南，讲的是框架层（组件注册、registry、`migrate`）。
 > 两者都读；冲突时以本文件为准。`CLAUDE.md` 转发到 `AGENT.md`。
 
-**站点**：Meta42（调研 · 深度思考 · 认知）— <https://iodone.github.io/>
-**技术栈**：Nimbus（`@cloudflare/nimbus-docs`）/ Astro，静态输出，GitHub Pages。
+**站点**：Meta42（调研 · 深度思考 · 认知）— <https://blog.meta42.me/>
+**技术栈**：Nimbus（`@cloudflare/nimbus-docs`）/ Astro，静态输出，Cloudflare Workers + 自定义域。
+**部署拓扑**：一个子域一台 Worker，`meta42.me` 下的博客是其中一台（见 §3）。
 
 ## 0. 先记住三件事
 
-1. **发布 = 推 `main`。** `.github/workflows/deploy.yml` 自动构建并发布到 Pages。没有 staging、没有草稿分支——在 `main` 上的每次提交都会上线。
+1. **发布 = 推 `main`。** Cloudflare 的 Git 集成自动构建并发布。没有 staging、没有草稿分支——在 `main` 上的每次提交都会上线。
 2. **内容是人工挑选的，没有自动同步。** 不存在"从某处导入一批"的机制。每篇文章都要逐篇写、逐篇审。
 3. **顶部导航的唯一真源是 `src/lib/nav.ts`。** 别在别处硬编导航项。
 
@@ -60,15 +61,21 @@ git commit -m "post: 新增 xxx"
 git push
 ```
 
-CI 跑三步，和本地同源：
+Cloudflare 拉代码后跑两步，和本地同源：
 
-1. `pnpm install --frozen-lockfile`
-2. `pnpm exec nimbus-docs check` — 免构建自检。内容或配置有问题时**先失败**，坏站点不会上线
-3. `pnpm build` → `dist/` 交给 Pages
+1. `pnpm exec nimbus-docs check` — 免构建自检。内容或配置有问题时**先失败**，坏站点不会上线
+2. `pnpm build` → `dist/` 作为静态资源随 Worker 上传
 
-进度看仓库 **Actions** 页，通常一分钟内完成。
+进度看 Cloudflare dashboard 的 **Deployments** 页。
 
-**回滚**：Pages 发布的是不可变 artifact，`git revert <bad-commit> && git push` 即回退。
+**域名拓扑**：`blog.meta42.me` 由 `wrangler.jsonc` 的 `routes`（`custom_domain: true`）声明。
+改域名只动两处：这里 + `astro.config.ts` 的 `site`（后者驱动 canonical / og:url / sitemap /
+robots.txt / RSS / `llms.txt`）。**只改 `wrangler.jsonc` 忘了 `site`，站点会自己声明规范地址
+在旧域名上**——不报错，但权重全给旧站。`meta42.me` 下其他子域各自一台 Worker，加站不碰这个仓库。
+
+**回滚**：`git revert <bad-commit> && git push`，或在 dashboard 的 Deployments 里把历史版本重新设为当前版本。
+
+**手动部署**（救火用）：`pnpm deploy`（= `astro check && astro build && wrangler deploy`），需先 `wrangler login`。
 
 ## 4. 提交前必跑
 

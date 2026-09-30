@@ -3,7 +3,7 @@
 [Nimbus](https://nimbus-docs.com)（Cloudflare 的 Astro 文档框架）驱动的个人站点：**调研 · 深度思考 · 认知**。
 当前以博客（`/blog`）为主体，文档区在逐步建设中。
 
-站点已发布在 **https://iodone.github.io/**。
+站点已发布在 **https://blog.meta42.me/**（Cloudflare Workers，一个子域一台 Worker）。
 
 ## 本地运行
 
@@ -49,7 +49,7 @@ grep -o "https://[a-z0-9.]*" dist/llms.txt | sort -u                    # 2. 域
 
 ### 推送即发布
 
-`main` 上只要有推送，`.github/workflows/deploy.yml` 就构建并发到 GitHub Pages，没有别的步骤：
+`main` 上只要有推送，Cloudflare 就构建并发布这台 Worker，没有别的步骤：
 
 ```bash
 git add -A
@@ -57,18 +57,40 @@ git commit -m "post: 新增 xxx"
 git push
 ```
 
-工作流做三件事，和本地跑的是同一条命令：
+构建跑两步，和本地同源：
 
-1. `pnpm install --frozen-lockfile`
-2. `pnpm exec nimbus-docs check`——免构建自检（环境 / 结构 / 写作规范 / 类型 / 迁移），
+1. `pnpm exec nimbus-docs check`——免构建自检（环境 / 结构 / 写作规范 / 类型 / 迁移），
    内容或配置有问题时**先失败**，不会把坏站点推上去；
-3. `pnpm build`，再把 `dist/` 交给 Pages。
+2. `pnpm build`，`dist/` 作为静态资源随 Worker 一起上传。
 
-进度看仓库的 **Actions** 标签页，通常一分钟内完成。
+进度看 Cloudflare dashboard 的 **Deployments** 页，通常一两分钟。
 
-**为什么不需要 `base`**：仓库名恰好是 `iodone.github.io`，属于 GitHub 的「用户站点」，
-发布在域名根。若改成项目仓库（`iodone.github.io/REPO/`），`astro.config.ts` 要加 `base`，
-且所有内部链接需复验——代码里已用 `withBase()` 包裹，但那是迁移，不是开关。
+### 部署形态：一个子域一台 Worker
+
+`wrangler.jsonc` 的 `routes` 声明这台 Worker 挂在哪个域名上：
+
+```jsonc
+"routes": [{ "pattern": "blog.meta42.me", "custom_domain": true }]
+```
+
+`custom_domain: true` 的含义是「**这台 Worker 就是源站**」——Cloudflare 负责建 DNS 记录、签证书，
+不用自己配 CNAME。`meta42.me` 的其他子域各自一台 Worker，互不牵连，各自独立部署与回滚。
+
+静态资源的请求**不计费也不限量**（不占 Workers 每天 10 万次额度——纯静态压根不触发 Worker 脚本），
+所以「一个域名挂很多站」不额外花钱。
+
+**为什么不需要 `base`**：博客独占 `blog.meta42.me` 这个 origin，站点根就是域名根。
+若改成路径前缀（`meta42.me/blog`），`astro.config.ts` 要加 `base`，且所有内部链接需复验——
+代码里已用 `withBase()` 包裹，但那是迁移，不是开关。
+
+### 本地预览 / 手动部署
+
+```bash
+pnpm preview:cf      # astro build && wrangler dev —— 本地跑一遍真实运行时（含 404 行为）
+pnpm deploy          # astro check && astro build && wrangler deploy —— 救火用，需先 wrangler login
+```
+
+日常不用手跑：推送就是发布。
 
 ### 新增一篇文章
 
@@ -97,14 +119,15 @@ frontmatter，年月分组来自 `date`，加一篇文章就自动跟上。
 
 ### 回滚
 
-Pages 发布的是不可变 artifact，回滚就是重新发一次旧提交：
+代码层面就是 revert 后重新推一次：
 
 ```bash
 git revert <bad-commit>
 git push
 ```
 
-另有一组 `wrangler` 脚本（`pnpm deploy`）可以把同一份 `dist/` 发到 Cloudflare，当前不使用。
+也可以不动代码：在 Cloudflare dashboard 的 **Deployments** 里把历史版本重新设为当前版本——
+更快，适合「新版本出问题先切回去再查」。
 
 ## 升级 Nimbus
 

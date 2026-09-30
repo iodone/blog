@@ -9,13 +9,13 @@ const nimbusConfig = defineNimbusConfig({
   // Canonical origin, no trailing slash. Drives canonical URLs, absolute OG
   // image URLs, robots.txt, sitemap, and the links in /llms.txt.
   //
-  // GitHub Pages user site: the repo is named iodone.github.io, so Pages
-  // serves it from the origin root and no base is needed here. Switching to
-  // a custom domain means changing this one string. Switching to a project
-  // repo (iodone.github.io/REPO/) would also need a base plus a re-check of
-  // every internal link - withBase() covers that, but it is a migration,
-  // not a config toggle.
-  site: "https://iodone.github.io",
+  // Deployed as a Cloudflare Worker with a Custom Domain: one Worker per
+  // subdomain of meta42.me (see the deploy section in README). The blog owns
+  // its own origin, so no base is needed - moving subdomains means changing
+  // this one string. Moving to a path prefix instead (meta42.me/blog) would
+  // need a base plus a re-check of every internal link: withBase() covers
+  // that, but it is a migration, not a config toggle.
+  site: "https://blog.meta42.me",
   // CHANGE_ME: your project's name — used for <title>, the home H1, and OG.
   title: "Meta42",
   // CHANGE_ME: a one-line description of your docs — used for meta + OG.

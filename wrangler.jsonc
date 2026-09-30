@@ -5,5 +5,15 @@
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"
-  }
+  },
+  // One Worker per subdomain of meta42.me - see the deploy section in README.
+  // custom_domain means "this Worker IS the origin": Cloudflare creates the
+  // DNS record and the certificate. Contrast with a plain route, which sits
+  // in front of some other origin.
+  "routes": [
+    {
+      "pattern": "blog.meta42.me",
+      "custom_domain": true
+    }
+  ]
 }
