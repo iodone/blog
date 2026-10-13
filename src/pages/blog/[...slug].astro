@@ -16,7 +16,7 @@ export const getStaticPaths: GetStaticPaths = async (options) =>
 const page = await getCollectionPage<"blog">(Astro);
 if (page instanceof Response) return page;
 const { entry, Content, headings, markdownUrl, ogImageUrl } = page;
-const { title, description, date, tags } = entry.data;
+const { title, subtitle, description, date, tags } = entry.data;
 
 const iso = date.toISOString().slice(0, 10);
 // zh-CN label, pinned to UTC so the build machine's timezone can't shift
@@ -73,6 +73,14 @@ const toc = getTOC(headings, { minHeadingLevel: 2, maxHeadingLevel: 3 });
     >
       {title}
     </h1>
+
+    {
+      subtitle && (
+        <p class="mt-3 font-serif text-balance text-muted-foreground text-lg leading-relaxed">
+          {subtitle}
+        </p>
+      )
+    }
 
     {
       tags.length > 0 && (

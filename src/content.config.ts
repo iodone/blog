@@ -18,6 +18,9 @@ export const collections = {
     docsCollection({
       base: "blog",
       schemaFields: {
+        // Optional deck under the post title — rendered by the post template
+        // between h1 and tags (the meta/OG `description` is a separate field).
+        subtitle: z.string().optional(),
         // `date` drives the reverse-chron sort + timeline marker.
         date: z.coerce.date({
           error: (iss) =>
