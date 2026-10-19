@@ -5,14 +5,14 @@
 > 两者都读；冲突时以本文件为准。`CLAUDE.md` 转发到 `AGENT.md`。
 
 **站点**：Meta42（调研 · 深度思考 · 认知）— <https://blog.meta42.me/>
-**源码**：GitHub **私有**仓库 `iodone/blog`（本地在 `projects/blog/`）。
+**源码**：GitHub **公开**仓库 [`iodone/blog`](https://github.com/iodone/blog)（本地在 `projects/blog/`）。
 **技术栈**：Nimbus（`@cloudflare/nimbus-docs`）/ Astro，静态输出，Cloudflare Workers + 自定义域。
 **部署拓扑**：GitHub 管源码，Cloudflare Workers Builds 管发布；一个子域一台 Worker，
 `meta42.me` 下的博客是其中一台（见 §3）。
 
 ## 0. 先记住三件事
 
-1. **发布 = 推 `main`。** Cloudflare 的 Git 集成（Workers Builds）自动构建并发布。没有 staging、没有草稿分支——在 `main` 上的每次提交都会上线。**仓库是私有的，站点是公开的**：私有只挡源码，不挡已发布的正文，推之前自己看清。
+1. **发布 = 推 `main`。** Cloudflare 的 Git 集成（Workers Builds）自动构建并发布。没有 staging、没有草稿分支——在 `main` 上的每次提交都会上线。**仓库和站点都是公开的**：源码、正文、提交历史全部全球可读，推之前自己看清。
 2. **内容是人工挑选的，没有自动同步。** 不存在"从某处导入一批"的机制。每篇文章都要逐篇写、逐篇审。
 3. **顶部导航的唯一真源是 `src/lib/nav.ts`。** 别在别处硬编导航项。
 
@@ -90,7 +90,7 @@ robots.txt / RSS / `llms.txt`）。**只改 `wrangler.jsonc` 忘了 `site`，站
 
 ```bash
 pnpm exec nimbus-docs check    # 五项：Environment / Structure / Migrations / Authoring / Types，应全 ✓
-pnpm build                     # 基线：13 页，Pagefind 索引 4 页
+pnpm build                     # 基线：18 页，Pagefind 索引 6 页
 pnpm typecheck                 # 基线：117 文件，0 错 0 警 0 提示
 ```
 

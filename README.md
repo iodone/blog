@@ -4,10 +4,10 @@
 当前以博客（`/blog`）为主体，文档区在逐步建设中。
 
 站点已发布在 **https://blog.meta42.me/**（Cloudflare Workers，一个子域一台 Worker）。
-源码在 GitHub 私有仓库 `iodone/blog`：**GitHub 管源码，Cloudflare 管发布**，推 `main` 即上线。
+源码在 GitHub 公开仓库 [`iodone/blog`](https://github.com/iodone/blog)：**GitHub 管源码，Cloudflare 管发布**，推 `main` 即上线。
 
-> ⚠️ **仓库私有 ≠ 站点私有。** 私有只挡住源码，挡不住已经发出去的正文——`main` 上的每一行
-> 都会立刻出现在 <https://blog.meta42.me/>，全球可读，没有回收站。发布前把内部指代删干净。
+> ⚠️ **推 `main` 等于同时公开两次。** 一次是站点 <https://blog.meta42.me/>，一次是仓库本身——
+> 源码、正文、提交历史全部全球可读，没有回收站。发布前把内部指代删干净。
 
 ## 本地运行
 
