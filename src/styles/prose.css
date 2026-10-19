@@ -139,19 +139,23 @@
   color: var(--nb-foreground);
 }
 
-/* Inline emphasis — declare the weight explicitly.
+/* Inline emphasis -- pick a face that actually reads.
 
-   Do NOT rely on the UA default for <strong>/<b>, which is `font-weight: bolder`.
-   `bolder` is a *relative* step, and how far it steps depends on the family:
-   a static face with only 400/700 jumps straight to 700, but a variable face
-   with a 100-900 range (Noto Serif Variable, the Latin half of the body stack)
-   only steps to 500 — barely heavier than the surrounding text. CJK is worse:
-   the serif stack falls back to Songti SC, which has no 500 face at all, so a
-   500 request collapses to Regular and the emphasis renders as plain text.
+   Measured ink density vs regular (same text/size, Songti SC + Noto Serif stack):
+     font-weight: bolder / 700  ->  1.17x   (indistinguishable from each other)
+     font-weight: 900           ->  1.45x
+     700 + text-stroke .02em    ->  1.29x   (synthetic, muddies at small sizes)
 
-   Pinning 700 makes the real bold face get selected in both halves of the stack. */
+   The 700 face is simply a light bold. Songti SC ships Light/Regular/Bold/Black
+   and its Bold barely out-inks Regular at body size, so emphasis rendered as
+   plain text. 900 selects the real Black face (a designed weight, not
+   synthesised) in both halves of the stack: Songti SC for CJK, Noto Serif
+   Variable for Latin.
+
+   Do NOT dial this back to 700 without re-measuring; 1.17x is what 'no change'
+   looks like. */
 .docs-content :where(strong, b) {
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .docs-content :where(code:not([class])):not(:where(pre *)) {
