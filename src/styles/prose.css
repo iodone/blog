@@ -139,6 +139,21 @@
   color: var(--nb-foreground);
 }
 
+/* Inline emphasis — declare the weight explicitly.
+
+   Do NOT rely on the UA default for <strong>/<b>, which is `font-weight: bolder`.
+   `bolder` is a *relative* step, and how far it steps depends on the family:
+   a static face with only 400/700 jumps straight to 700, but a variable face
+   with a 100-900 range (Noto Serif Variable, the Latin half of the body stack)
+   only steps to 500 — barely heavier than the surrounding text. CJK is worse:
+   the serif stack falls back to Songti SC, which has no 500 face at all, so a
+   500 request collapses to Regular and the emphasis renders as plain text.
+
+   Pinning 700 makes the real bold face get selected in both halves of the stack. */
+.docs-content :where(strong, b) {
+  font-weight: 700;
+}
+
 .docs-content :where(code:not([class])):not(:where(pre *)) {
   font-family: var(--nb-font-mono);
   direction: ltr;
