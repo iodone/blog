@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="440" viewBox="0 0 900 440">
+<style>
+  :root { --bg:#ffffff; --fg:#1a1a2e; --muted:#6b7280; --panel:#f8fafc; --border:#d1d5db; --accent:#2563eb; --warn:#d97706; --good:#059669; --bad:#dc2626; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1117; --fg:#e5e7eb; --muted:#9ca3af; --panel:#1a1d27; --border:#374151; --accent:#60a5fa; --warn:#fbbf24; --good:#34d399; --bad:#f87171; }
+  }
+  .t { font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; }
+  .title { font-size: 21px; font-weight: 700; fill: var(--fg); }
+  .h { font-size: 16px; font-weight: 700; fill: var(--fg); }
+  .s { font-size: 13px; fill: var(--muted); }
+  .lbl { font-size: 13px; font-weight: 600; fill: var(--fg); }
+  .tag { font-size: 12px; font-weight: 700; }
+  .panel { fill: var(--panel); stroke: var(--border); stroke-width: 1.5; rx: 12; }
+  .box { fill: var(--bg); stroke: var(--border); stroke-width: 1.5; rx: 8; }
+</style>
+<rect width="900" height="440" fill="var(--bg)"/>
+
+<text class="t title" x="30" y="40">Loop → Thread/Session → Reactor：等待住在哪里</text>
+<text class="t s" x="30" y="64">同样是「等 CI 十五分钟」，三种承载形态的代价完全不同</text>
+
+<!-- Panel 1: Loop -->
+<rect class="panel" x="30" y="90" width="265" height="270"/>
+<text class="t h" x="50" y="124">① Loop</text>
+<text class="t s" x="50" y="146">推一下动一下</text>
+<rect class="box" x="55" y="170" width="100" height="52"/>
+<text class="t lbl" x="105" y="201" text-anchor="middle">人</text>
+<rect class="box" x="185" y="170" width="85" height="52"/>
+<text class="t lbl" x="227" y="201" text-anchor="middle">Agent</text>
+<path d="M155 196 L185 196" stroke="var(--muted)" stroke-width="2" marker-end="url(#a)"/>
+<path d="M185 212 L155 212" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 3"/>
+<text class="t s" x="50" y="252">「CI 过了吗？」</text>
+<text class="t s" x="50" y="272">人是闹钟、人是调度器</text>
+<rect x="50" y="296" width="220" height="34" rx="8" fill="var(--bad)" opacity="0.12"/>
+<text class="t tag" x="62" y="318" fill="var(--bad)">等待住在人身上</text>
+
+<!-- Panel 2: Thread/Session -->
+<rect class="panel" x="318" y="90" width="265" height="270"/>
+<text class="t h" x="338" y="124">② Thread / Session</text>
+<text class="t s" x="338" y="146">挂着、轮询、占资源</text>
+<rect class="box" x="343" y="170" width="215" height="52"/>
+<text class="t lbl" x="450" y="193" text-anchor="middle">Agent（会话挂着）</text>
+<text class="t s" x="450" y="213" text-anchor="middle">每 30s 轮询 ⏱ → 💸</text>
+<text class="t s" x="338" y="252">进程重启 = 等待凭空消失</text>
+<text class="t s" x="338" y="272">烧 token · 占内存 · 无账本</text>
+<rect x="338" y="296" width="220" height="34" rx="8" fill="var(--warn)" opacity="0.12"/>
+<text class="t tag" x="350" y="318" fill="var(--warn)">等待住在进程内存</text>
+
+<!-- Panel 3: Reactor -->
+<rect class="panel" x="606" y="90" width="265" height="270"/>
+<text class="t h" x="626" y="124">③ Reactor</text>
+<text class="t s" x="626" y="146">等待落盘 · 事件唤醒</text>
+<rect class="box" x="631" y="168" width="120" height="56"/>
+<text class="t lbl" x="691" y="191" text-anchor="middle">等待表</text>
+<text class="t s" x="691" y="211" text-anchor="middle">等 CI #42</text>
+<path d="M748 196 L796 196" stroke="var(--good)" stroke-width="2.5" marker-end="url(#g)"/>
+<text class="t" x="772" y="184" text-anchor="middle" font-size="11" fill="var(--good)">Webhook</text>
+<rect class="box" x="800" y="168" width="56" height="56"/>
+<text class="t s" x="828" y="200" text-anchor="middle">醒来</text>
+<text class="t s" x="626" y="252">中间零 token · 零线程</text>
+<text class="t s" x="626" y="272">精准唤醒 · 可枚举 · 可接管</text>
+<rect x="626" y="296" width="220" height="34" rx="8" fill="var(--good)" opacity="0.12"/>
+<text class="t tag" x="638" y="318" fill="var(--good)">等待住在一张表里</text>
+
+<!-- bottom bar -->
+<rect x="30" y="382" width="841" height="36" rx="10" fill="var(--accent)" opacity="0.10"/>
+<text class="t lbl" x="450" y="405" text-anchor="middle" fill="var(--accent)">判据只问两句：等待住在哪里？唤醒值多少钱？</text>
+
+<defs>
+  <marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="var(--muted)"/></marker>
+  <marker id="g" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="var(--good)"/></marker>
+</defs>
+</svg>
