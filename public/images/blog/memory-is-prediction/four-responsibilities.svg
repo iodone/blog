@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
+    </marker>
+  </defs>
+  <style>
+    .box { fill: #f8f9fa; stroke: #dee2e6; stroke-width: 1.5; rx: 8; }
+    .h { fill: #e8f5e9; stroke: #4caf50; }
+    .k { fill: #fff3e0; stroke: #ff9800; }
+    .i { fill: #e3f2fd; stroke: #2196f3; }
+    .v { fill: #f3e5f5; stroke: #9c27b0; }
+    .label { font-size: 14px; font-weight: 600; fill: #333; }
+    .small { font-size: 12px; fill: #666; }
+    .tiny { font-size: 11px; fill: #888; }
+    .arrow { stroke: #666; stroke-width: 1.5; fill: none; marker-end: url(#arrow2); }
+    .dashed { stroke-dasharray: 5,3; }
+  </style>
+
+  <text x="360" y="28" text-anchor="middle" class="label" font-size="16">四种职责：账本派生笔记和索引，三者组装投影，dreaming 离线对账</text>
+
+  <!-- H 账本 -->
+  <rect x="40" y="60" width="140" height="100" class="box h"/>
+  <text x="110" y="85" text-anchor="middle" class="label">H 账本</text>
+  <text x="110" y="105" text-anchor="middle" class="small">发生过什么</text>
+  <text x="110" y="125" text-anchor="middle" class="tiny">只追加 · 唯一真相</text>
+
+  <!-- K 笔记 -->
+  <rect x="260" y="60" width="140" height="100" class="box k"/>
+  <text x="330" y="85" text-anchor="middle" class="label">K 笔记</text>
+  <text x="330" y="105" text-anchor="middle" class="small">现在相信什么</text>
+  <text x="330" y="125" text-anchor="middle" class="tiny">可修订 · 留版本</text>
+
+  <!-- I 索引 -->
+  <rect x="480" y="60" width="140" height="100" class="box i"/>
+  <text x="550" y="85" text-anchor="middle" class="label">I 索引</text>
+  <text x="550" y="105" text-anchor="middle" class="small">去哪里找</text>
+  <text x="550" y="125" text-anchor="middle" class="tiny">可重建 · 无真相</text>
+
+  <!-- V 投影 -->
+  <rect x="260" y="240" width="140" height="100" class="box v"/>
+  <text x="330" y="265" text-anchor="middle" class="label">V 投影</text>
+  <text x="330" y="285" text-anchor="middle" class="small">本轮看见什么</text>
+  <text x="330" y="305" text-anchor="middle" class="tiny">有界 · 可排除</text>
+
+  <!-- H → K -->
+  <path d="M 180 110 L 260 110" class="arrow"/>
+  <text x="220" y="100" text-anchor="middle" class="tiny">显式声明</text>
+
+  <!-- H → I -->
+  <path d="M 110 160 L 110 200 L 550 200 L 550 160" class="arrow dashed"/>
+  <text x="330" y="215" text-anchor="middle" class="tiny">可计算折叠</text>
+
+  <!-- K + I → V -->
+  <path d="M 330 160 L 330 240" class="arrow"/>
+  <path d="M 550 160 L 550 290 L 400 290" class="arrow"/>
+
+  <!-- dreaming 回路 -->
+  <rect x="40" y="240" width="140" height="100" class="box" fill="#fce4ec" stroke="#e91e63"/>
+  <text x="110" y="265" text-anchor="middle" class="label">dreaming</text>
+  <text x="110" y="285" text-anchor="middle" class="small">离线对账</text>
+  <text x="110" y="305" text-anchor="middle" class="tiny">纠错 · 管层级 · 补缺链</text>
+  <path d="M 110 240 L 110 160" class="arrow dashed"/>
+  <text x="80" y="200" class="tiny" transform="rotate(-90 80 200)">对账基准</text>
+  <path d="M 180 290 L 260 290" class="arrow dashed"/>
+  <text x="220" y="280" text-anchor="middle" class="tiny">产新版本</text>
+</svg>

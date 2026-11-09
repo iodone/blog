@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
+    </marker>
+  </defs>
+  <style>
+    .box { fill: #f8f9fa; stroke: #dee2e6; stroke-width: 1.5; rx: 8; }
+    .ledger { fill: #e8f5e9; stroke: #4caf50; }
+    .notes { fill: #fff3e0; stroke: #ff9800; }
+    .label { font-size: 14px; font-weight: 600; fill: #333; }
+    .small { font-size: 12px; fill: #666; }
+    .tiny { font-size: 11px; fill: #888; }
+    .arrow { stroke: #666; stroke-width: 1.5; fill: none; marker-end: url(#arrow1); }
+    .dashed { stroke-dasharray: 5,3; }
+  </style>
+
+  <!-- 标题 -->
+  <text x="360" y="28" text-anchor="middle" class="label" font-size="16">账本只追加，笔记可修订，source_ids 回指账本</text>
+
+  <!-- 账本层 -->
+  <rect x="40" y="60" width="200" height="240" class="box ledger"/>
+  <text x="140" y="85" text-anchor="middle" class="label">账本（Tape / H）</text>
+  <text x="140" y="105" text-anchor="middle" class="small">只追加 · 不覆盖 · 不删除</text>
+
+  <rect x="55" y="120" width="170" height="32" class="box" fill="#fff"/>
+  <text x="140" y="141" text-anchor="middle" class="tiny">entry 42: 出门向东走</text>
+  <rect x="55" y="158" width="170" height="32" class="box" fill="#fff"/>
+  <text x="140" y="179" text-anchor="middle" class="tiny">entry 43: 到达月山入口</text>
+  <rect x="55" y="196" width="170" height="32" class="box" fill="#fff"/>
+  <text x="140" y="217" text-anchor="middle" class="tiny">entry 44: 踩落台地</text>
+  <text x="140" y="255" text-anchor="middle" class="tiny">…… 只增不减</text>
+
+  <!-- 笔记层 -->
+  <rect x="480" y="60" width="200" height="240" class="box notes"/>
+  <text x="580" y="85" text-anchor="middle" class="label">笔记（Memory / K）</text>
+  <text x="580" y="105" text-anchor="middle" class="small">可修订 · 留版本 · 带来源</text>
+
+  <rect x="495" y="120" width="170" height="48" class="box" fill="#fff"/>
+  <text x="580" y="140" text-anchor="middle" class="tiny">v1: 宝可梦中心在东侧</text>
+  <text x="580" y="156" text-anchor="middle" class="tiny" fill="#c00">✗ 被 v2 替代</text>
+  <rect x="495" y="180" width="170" height="48" class="box" fill="#fff"/>
+  <text x="580" y="200" text-anchor="middle" class="tiny">v2: 宝可梦中心在西侧</text>
+  <text x="580" y="216" text-anchor="middle" class="tiny" fill="#080">✓ 当前有效</text>
+  <text x="580" y="255" text-anchor="middle" class="tiny">supersedes v1</text>
+
+  <!-- source_ids 回指箭头 -->
+  <path d="M 495 144 Q 360 144 240 136" class="arrow dashed"/>
+  <text x="360" y="130" text-anchor="middle" class="tiny">source_ids: [42, 43]</text>
+  <path d="M 495 204 Q 360 204 240 174" class="arrow dashed"/>
+  <text x="360" y="195" text-anchor="middle" class="tiny">source_ids: [42, 43]</text>
+
+  <!-- dreaming 对账 -->
+  <rect x="280" y="270" width="160" height="50" class="box" fill="#e3f2fd" stroke="#2196f3"/>
+  <text x="360" y="292" text-anchor="middle" class="small" font-weight="600">dreaming 对账</text>
+  <text x="360" y="308" text-anchor="middle" class="tiny">发现方向记反 → 产 v2</text>
+  <path d="M 360 270 L 360 240" class="arrow"/>
+  <path d="M 360 320 L 360 340 L 580 340 L 580 300" class="arrow"/>
+</svg>
